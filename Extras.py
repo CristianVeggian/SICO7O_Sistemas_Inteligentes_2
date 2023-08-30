@@ -5,5 +5,7 @@ def normalize(X: list | npt.ArrayLike):
     if type(X) is list:
         X = np.array(X)
     
-    return np.linalg.norm(X)
+    media = X.mean()
+    desvioPadrao = X.std()
 
+    return np.array([(x-media)/desvioPadrao for x in X])
