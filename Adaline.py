@@ -15,7 +15,7 @@ class Adaline:
     def degrau(self, v):
         if v >= 0:
             return 1
-        return 0
+        return -1
 
         #ativação linear
     def phi(self, v):
@@ -25,49 +25,47 @@ class Adaline:
 
         self.W = np.array([random.random() for _ in range(len(X[0])+1)])
 
-        #normalizando os atributos de X
-        X = ex.normalize(X)
-        
         #adiciona coluna do bias
         X = np.insert(X, 0, [self.bias for _ in range(len(X))], axis=1)
-        
+
+        #normalizando os atributos de X
+        X = ex.normalize(X)
+
         if type(d) is list:
             d = np.array(d)
                     
         epocas = 0
-        self.erro = [1]
+        self.erro = list()
         
-        while self.erro[-1] > self.tol and epocas < self.MAX_ITER: 
-            counterD = -1
+        while epocas < self.MAX_ITER: 
+            counter = 0
             #muda a ordem das amostras
-            np.random.shuffle(X)
+            #np.random.shuffle(X)
+            v = list()
             for line in X:
-                counterD += 1
-                counterX = 0
-                v = 0
-                while counterX < len(line):
-                    v += line[counterX]*self.W[counterX]
-                    counterX += 1
-                v += self.bias * self.W[-1]
+                v.append(np.sum(line*self.W))
                 v = self.phi(v)
                 #atualiza TODOS os pesos sinapticos, para TODAS as amostras
-                self.W = self.W + self.n*(d[counterD]-v)*line
+                self.W = self.W + self.n*(d[counter]-v[counter])*line
+                counter += 1
             epocas += 1
             #erro quadrático: (d-X*W)^2/N
-            self.erro.append((np.square(d - X*self.W)).mean())
+            self.erro.append((np.square(d - v)).mean())
+            if self.erro[-1] < self.tol:
+                break
 
     def predicao(self, X: list | npt.ArrayLike):
-        if type(X) is list:
-            X = np.array(X)
-            
+
+        #adiciona coluna do bias
+        X = np.insert(X, 0, [self.bias for _ in range(len(X))], axis=1)
+        #X = np.append(X, [[self.bias] for _ in range(len(X))], axis=1)
+
+        #normalizando os atributos de X
+        X = ex.normalize(X)
         saida = list()
             
         for line in X:
-            counterX = 0
-            v = 0
-            while counterX < len(line):
-                v += line[counterX]*self.W[counterX]
-                counterX += 1
-            v += self.bias * self.W[-1] 
+            v = line*self.W
+            v = np.sum(v)
             saida.append(self.degrau(v))
         return saida
