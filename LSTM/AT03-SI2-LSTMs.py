@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 from sklearn.preprocessing import MinMaxScaler
+from sklearn.metrics import mean_squared_error, mean_absolute_error
 
 from keras.models import Sequential
 from keras.layers import Dense, LSTM
@@ -31,6 +32,9 @@ pd.options.mode.chained_assignment = None  # Desabilita o aviso
 
 for ativo in tech_dict.keys():
     df = pdr.get_data_yahoo(ativo, start='2012-01-01', end=datetime.now())
+
+    #baseline = média móvel
+    baseline = df['Adj Close'].rolling(10).mean()
 
     data = df.filter(['Close'])
     # Convert the dataframe to a numpy array
@@ -90,14 +94,18 @@ for ativo in tech_dict.keys():
     predictions = model.predict(x_test)
     predictions = scaler.inverse_transform(predictions)
 
-    # Get the root mean squared error (RMSE)
-    rmse = np.sqrt(np.mean(((predictions - y_test) ** 2)))
+    rms = mean_squared_error(y_test, predictions)
+    mae = mean_absolute_error(y_test, predictions)
+
+    print(f"RMS ({ativo}): {rms}")
+    print(f"MAE ({ativo}): {mae}")
 
     # Plot the data
     train = data[:training_data_len]
     valid = data[training_data_len:]
     valid.loc[:,"Predictions"] = predictions
     # Visualize the data
+    axs[tech_dict[ativo]].plot(baseline)
     axs[tech_dict[ativo]].plot(train['Close'])
     axs[tech_dict[ativo]].plot(valid[['Close', 'Predictions']])
     axs[tech_dict[ativo]].set_title(ativo)
