@@ -10,6 +10,8 @@ from sklearn.metrics import mean_squared_error, mean_absolute_error
 from keras.models import Sequential
 from keras.layers import Dense, LSTM
 
+from datetime import datetime
+
 sns.set_style('whitegrid')
 plt.style.use("fivethirtyeight")
 
@@ -19,9 +21,6 @@ import yfinance as yf
 from pandas_datareader import data as pdr
 
 yf.pdr_override()
-
-# For time stamps
-from datetime import datetime
 
 #J&J, NVIDIA, COSTCO WHOLESALE, EXXOL MOBIL
 tech_dict = {'COST': (0,0), 'JNJ': (0,1), 'NVDA': (1,0), 'XOM': (1,1)}
@@ -34,7 +33,7 @@ for ativo in tech_dict.keys():
     df = pdr.get_data_yahoo(ativo, start='2012-01-01', end=datetime.now())
 
     #baseline = média móvel
-    baseline = df['Adj Close'].rolling(10).mean()
+    baseline = df['Adj Close'].rolling(120).mean()
 
     data = df.filter(['Close'])
     # Convert the dataframe to a numpy array
@@ -105,12 +104,12 @@ for ativo in tech_dict.keys():
     valid = data[training_data_len:]
     valid.loc[:,"Predictions"] = predictions
     # Visualize the data
-    axs[tech_dict[ativo]].plot(baseline)
-    axs[tech_dict[ativo]].plot(train['Close'])
-    axs[tech_dict[ativo]].plot(valid[['Close', 'Predictions']])
+    axs[tech_dict[ativo]].plot(baseline, ls = ':')
+    axs[tech_dict[ativo]].plot(train['Close'], lw = '2.5')
+    axs[tech_dict[ativo]].plot(valid[['Close', 'Predictions']], lw = '2.5')
     axs[tech_dict[ativo]].set_title(ativo)
     axs[tech_dict[ativo]].set(xlabel='Data', ylabel='Preço estimado (USD)')
-    axs[tech_dict[ativo]].legend(['Train', 'Val', 'Predictions'], loc='upper left')
+    axs[tech_dict[ativo]].legend(['Moving Average', 'Train', 'Val', 'Predictions'], loc='upper left')
     #plt.figure(figsize=(16,6))
     #plt.title('Model')
     #plt.xlabel('Date', fontsize=18)
